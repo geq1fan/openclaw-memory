@@ -10,7 +10,20 @@ When a user sends you this project link, they want to **install** this skill. Pl
 
 Automatically captures OpenClaw session memories and maintains long-term memory:
 - **memory-writer**: Scans session transcripts every 2 hours → writes to daily files
-- **memory-janitor**: Compresses/archives old logs daily → maintains MEMORY.md
+- **memory-janitor**: Compresses/archives old logs → maintains MEMORY.md + **validates knowledge**
+
+### Knowledge Validation (New)
+
+memory-janitor automatically detects issues in MEMORY.md:
+
+| Issue | Detection |
+|-------|-----------|
+| ⚠️ Outdated | Config changed, version updated, path moved |
+| 🔄 Duplicate | Same info appears multiple times |
+| ❓ Orphaned | Isolated names/terms without context |
+| ⚡ Conflicting | Contradicts other entries |
+
+Problems are marked as comments in MEMORY.md for user review.
 
 ## Installation Flow
 
