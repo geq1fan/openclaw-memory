@@ -126,9 +126,9 @@ Use the `cron` tool to add two jobs:
   "schedule": { "kind": "cron", "expr": "10 3,9,15,21 * * *", "tz": "Asia/Shanghai" },
   "payload": {
     "kind": "agentTurn",
-    "message": "Memory maintenance task. 1. Change detection: find /root/.openclaw/workspace/memory/ -maxdepth 1 -name '*.md' -newer /root/.openclaw/workspace/memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read memory/MEMORY_JANITOR_PROMPT.md and execute. 3. touch /root/.openclaw/workspace/memory/.janitor-last-run. Exit silently."
+    "message": "Memory maintenance task. 1. Change detection: find /root/.openclaw/workspace/memory/ -maxdepth 1 -name '*.md' -newer /root/.openclaw/workspace/memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read memory/MEMORY_JANITOR_PROMPT.md and execute all phases (including knowledge validation). 3. touch /root/.openclaw/workspace/memory/.janitor-last-run. 4. Send result summary via message tool."
   },
-  "delivery": { "mode": "none" }
+  "delivery": { "mode": "announce" }
 }
 ```
 

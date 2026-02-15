@@ -228,7 +228,11 @@
 
 ## 最终报告
 
-每次执行完毕后，输出执行摘要到 `memory/weekly/janitor-report-YYYY-MM-DD.md`：
+每次执行完毕后：
+
+### 1. 写入报告文件
+
+输出执行摘要到 `memory/weekly/janitor-report-YYYY-MM-DD.md`：
 
 ```markdown
 ## 执行摘要 - YYYY-MM-DD HH:MM
@@ -244,8 +248,29 @@
   - 新增：X 条（列出具体内容）
   - 压缩/合并：X 条
   - 当前大小：X.X KB / X 行
+- 知识验证：发现 X 个问题（列出具体问题，无则写"无"）
 - USER.md 变更：X 条（列出具体变更，无变化则写"无"）
 - 版本：V1（保守期）
+```
+
+### 2. 发送通知
+
+使用 `message` 工具发送摘要给用户：
+
+```json
+{
+  "action": "send",
+  "message": "🧠 memory-janitor 完成\n\n- 归档: X 个文件\n- MEMORY.md: X 条更新\n- 知识验证: X 个问题\n\n详情: memory/weekly/janitor-report-YYYY-MM-DD.md"
+}
+```
+
+如果没有实际变更，发送简要通知：
+
+```json
+{
+  "action": "send",
+  "message": "🧠 memory-janitor 完成，无变更"
+}
 ```
 
 ---
