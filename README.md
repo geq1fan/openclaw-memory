@@ -1,6 +1,6 @@
 # OpenClaw Memory
 
-自动化的 AI Agent 记忆管理工具。让 OpenClaw 拥��长期记忆，跨会话保持上下文。
+自动化的 AI Agent 记忆管理工具。让 OpenClaw 拥有长期记忆，跨会话保持上下文。
 
 ## 功能
 
@@ -22,7 +22,12 @@ cd openclaw-memory
 
 安装完成后，OpenClaw 会自动：
 - 每 2 小时抓取一次会话记忆
-- 每天整理一次记忆文件（压缩、归档、同步）
+- 每天 4 次整理记忆文件（压缩、归档、同步）
+
+## 前置要求
+
+- OpenClaw 已安装并运行
+- 存在可用的 agent（默认使用 `kimi-agent`，可在 `cron/openclaw.json` 中修改）
 
 ## 手动安装
 
@@ -38,8 +43,12 @@ cp prompts/*.md /root/.openclaw/workspace/memory/
 # 3. 创建目录结构
 mkdir -p /root/.openclaw/workspace/memory/{weekly,archive}
 
-# 4. 添加 cron job (需要 OpenClaw 网关 API)
-# 参见 cron/openclaw.json 中的配置
+# 4. 添加 cron job
+# 方式一：使用 OpenClaw Gateway API（推荐）
+# 将 cron/openclaw.json 中的 job 配置 POST 到 /api/cron/add
+
+# 方式二：在 OpenClaw 主会话中执行
+# 把 cron/openclaw.json 中的配置发给 agent，让它帮你添加
 ```
 
 ## 文件结构
@@ -69,11 +78,11 @@ mkdir -p /root/.openclaw/workspace/memory/{weekly,archive}
 ## 卸载
 
 ```bash
-# 删除 cron job
-openclaw cron remove memory-writer
-openclaw cron remove memory-janitor
+# 1. 删除 cron job（在 OpenClaw 主会话中执行）
+# 让 agent 执行：openclaw cron remove memory-writer
+# 让 agent 执行：openclaw cron remove memory-janitor
 
-# 删除文件 (可选)
+# 2. 删除文件 (可选)
 rm -rf /root/.openclaw/workspace/memory/scripts/memory-scanner.py
 rm -f /root/.openclaw/workspace/memory/MEMORY_WRITER_PROMPT.md
 rm -f /root/.openclaw/workspace/memory/MEMORY_JANITOR_PROMPT.md
@@ -81,18 +90,28 @@ rm -f /root/.openclaw/workspace/memory/MEMORY_JANITOR_PROMPT.md
 
 ## 自定义
 
-### 修改抓取频率
+### 修改使用的 Agent
 
-编辑 cron 配置：
+编辑 `cron/openclaw.json`，将 `agentId` 改为你配置的 agent：
 
-```bash
-openclaw cron update memory-writer --schedule '{"kind":"every","everyMs":3600000}'
+```json
+{
+  "name": "memory-writer",
+  "agentId": "your-agent-id",  // 改这里
+  ...
+}
 ```
 
-### 修改整理时间
+### 修改抓取频率
 
-```bash
-openclaw cron update memory-janitor --schedule '{"kind":"cron","expr":"0 4,10,16,22 * * *","tz":"Asia/Shanghai"}'
+编辑 `cron/openclaw.json` 中的 `schedule` 字段：
+
+```json
+// 每 1 小时
+"schedule": { "kind": "every", "everyMs": 3600000 }
+
+// 指定时间点（cron 表达式）
+"schedule": { "kind": "cron", "expr": "0 */2 * * *", "tz": "Asia/Shanghai" }
 ```
 
 ## 许可证

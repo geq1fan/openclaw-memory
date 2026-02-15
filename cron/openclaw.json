@@ -13,7 +13,7 @@
       "payload": {
         "kind": "agentTurn",
         "timeoutSeconds": 120,
-        "message": "你是记忆写入 Agent。严格执行以下步骤，不要做任何其他事情：\n\n1. 运行扫描脚本：\n```\npython3 /root/.openclaw/workspace/memory/scripts/memory-scanner.py --max-messages 100\n```\n脚本会自动读取并更新游标（.writer-state.json），你不需要手动更新。\n\n2. 从输出 JSON 的 sessions 数组中过滤，保留 user_message_count >= 3 的会话，跳过其余。\n\n3. 对每个有效会话，从 messages 数组提取关键内容：\n   - 保留：用户的问题/请求、assistant 的关键结论和决策、重要操作结果\n   - 丢弃：纯确认消息、重复内容\n   - 禁止脑补，只从实际消息提取\n\n4. 写入 memory/YYYY-MM-DD.md（按会话实际日期）：\n   - 幂等：先读取文件，如果 session_id 前 8 位已出现则跳过该会话\n   - 格式：## [agent_id] session:FIRST8 | HH:MM-HH:MM | N条消息\n   - 每个会话 5-15 条摘要\n\n5. 完成后回复 ANNOUNCE_SKIP（不需要通知主会话）。如无新内容也回复 ANNOUNCE_SKIP。"
+        "message": "你是记忆抓取员。读取 memory/MEMORY_WRITER_PROMPT.md，严格按照其中的指示执行。完成后回复 ANNOUNCE_SKIP。"
       },
       "delivery": {
         "mode": "none"

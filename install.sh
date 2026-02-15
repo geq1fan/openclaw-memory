@@ -40,37 +40,18 @@ fi
 # 创建 janitor 运行标记文件
 touch "$MEMORY_DIR/.janitor-last-run"
 
-echo "✅ 文件安装完成"
 echo ""
-
-# 注册 cron job
-echo "⏰ 注册定时任务..."
-
-# 读取 cron 配置
-WRITER_CRON=$(cat "$REPO_DIR/cron/openclaw.json" | python3 -c "import json,sys; jobs=json.load(sys.stdin)['jobs']; writer=[j for j in jobs if j['name']=='memory-writer'][0]; print(json.dumps(writer))")
-JANITOR_CRON=$(cat "$REPO_DIR/cron/openclaw.json" | python3 -c "import json,sys; jobs=json.load(sys.stdin)['jobs']; janitor=[j for j in jobs if j['name']=='memory-janitor'][0]; print(json.dumps(janitor))")
-
-# 检查是否已存在
-EXISTING_WRITER=$(openclaw cron list --json 2>/dev/null | python3 -c "import json,sys; jobs=json.load(sys.stdin).get('jobs',[]); print('1' if any(j.get('name')=='memory-writer' for j in jobs) else '0')" 2>/dev/null || echo "0")
-EXISTING_JANITOR=$(openclaw cron list --json 2>/dev/null | python3 -c "import json,sys; jobs=json.load(sys.stdin).get('jobs',[]); print('1' if any(j.get('name')=='memory-janitor' for j in jobs) else '0')" 2>/dev/null || echo "0")
-
-if [ "$EXISTING_WRITER" = "1" ]; then
-    echo "   memory-writer 已存在，跳过"
-else
-    echo "$WRITER_CRON" | openclaw cron add - 2>/dev/null || echo "   ⚠️  无法通过 CLI 添加 memory-writer，请手动配置"
-fi
-
-if [ "$EXISTING_JANITOR" = "1" ]; then
-    echo "   memory-janitor 已存在，跳过"
-else
-    echo "$JANITOR_CRON" | openclaw cron add - 2>/dev/null || echo "   ⚠️  无法通过 CLI 添加 memory-janitor，请手动配置"
-fi
-
+echo "✅ 文件安装完成！"
 echo ""
-echo "🎉 安装完成！"
+echo "⏰ 下一步：注册定时任务"
 echo ""
-echo "定时任务："
-echo "  - memory-writer: 每 2 小时抓取会话记忆"
-echo "  - memory-janitor: 每天 4 次整理记忆文件"
+echo "请将以下内容发送给 OpenClaw（在主会话中）："
 echo ""
-echo "查看状态: openclaw cron list"
+echo "---"
+echo "帮我添加两个 cron job，配置如下："
+cat "$REPO_DIR/cron/openclaw.json"
+echo "---"
+echo ""
+echo "或者手动添加："
+echo "  1. 读取 cron/openclaw.json"
+echo "  2. 在 OpenClaw 主会话中说：'帮我添加这两个 cron job'"
