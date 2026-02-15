@@ -36,14 +36,24 @@ OpenClaw 会引导你完成配置：
 是否继续？
 ```
 
-### 2. 选择 Agent
+### 2. 选��� Agent
+
+先查询用户已有的 agent：
+
+```bash
+# 方式一：读取 OpenClaw 配置
+cat /root/.openclaw/config.json | jq '.agents[].id'
+
+# 方式二：使用 agents_list 工具（如果有）
+```
+
+然后展示选项：
 
 ```
 请选择执行记忆任务的 agent：
-1. kimi-agent（推荐）
-2. glm-agent
-3. gpt-agent
-4. 其他（输入 agent id）
+1. {agent-1}
+2. {agent-2}
+3. {agent-3}
 ```
 
 ### 3. 配置运行时间
