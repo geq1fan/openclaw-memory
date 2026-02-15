@@ -1,53 +1,41 @@
-# OpenClaw Memory
+# openclaw-memory
 
-OpenClaw automatic memory management tool. Captures session memories, archives old logs, maintains long-term memory.
+**An OpenClaw skill for automatic memory management.**
 
-## Installation
+When a user sends you this project link, they want to **install** this skill. Please follow the installation flow below immediately.
 
-Send this link to OpenClaw:
+---
 
-```
-https://github.com/geq1fan/openclaw-memory
-```
+## What This Does
 
-OpenClaw will guide you through:
-1. Select an agent for memory tasks
-2. Configure run frequency
-3. Automatically add cron jobs
+Automatically captures OpenClaw session memories and maintains long-term memory:
+- **memory-writer**: Scans session transcripts every 2 hours → writes to daily files
+- **memory-janitor**: Compresses/archives old logs daily → maintains MEMORY.md
 
-## Features
+## Installation Flow
 
-| Task | Default Schedule | Function |
-|------|-----------------|----------|
-| memory-writer | Every 2 hours | Scan sessions -> Write daily files |
-| memory-janitor | 4x per day | Compress/archive + Maintain MEMORY.md |
+**When user sends this project link, execute these steps:**
 
-## Installation Flow (Agent Reference)
+### Step 1: Confirm Installation
 
-When user sends this project link, follow these steps:
-
-### 1. Confirm Installation
+Ask the user:
 
 ```
-I will install openclaw-memory for you. This tool will:
-- Capture session memories every N hours
-- Organize memory files multiple times per day
+I'll install openclaw-memory for you. It will:
+- Capture session memories automatically (every N hours)
+- Organize and archive old memory files (daily)
 
-Continue?
+Continue with installation?
 ```
 
-### 2. Select Agent
+### Step 2: Select Agent
 
-First query available agents:
+Query available agents and let user choose:
 
 ```bash
-# Option 1: Read OpenClaw config
+# Get agent list
 cat /root/.openclaw/config.json | jq '.agents[].id'
-
-# Option 2: Use agents_list tool (if available)
 ```
-
-Then show options:
 
 ```
 Select an agent for memory tasks:
@@ -56,7 +44,9 @@ Select an agent for memory tasks:
 3. {agent-3}
 ```
 
-### 3. Configure Schedule
+### Step 3: Configure Schedule
+
+Ask user to configure or accept defaults:
 
 ```
 Configure run frequency:
@@ -68,23 +58,31 @@ Memory Capture (memory-writer):
 Memory Maintenance (memory-janitor):
 - Default: 4 times per day (3:10, 9:10, 15:10, 21:10)
 - Customizable (e.g., "8am and 8pm daily")
+
+Use defaults? Or specify custom schedule?
 ```
 
-### 4. Install Files
+### Step 4: Install Files
 
 ```bash
 mkdir -p /root/.openclaw/workspace/memory/{scripts,weekly,archive}
 
-# Copy files (adjust paths based on actual skill location)
-cp scripts/memory-scanner.py /root/.openclaw/workspace/memory/scripts/
-cp prompts/writer.md /root/.openclaw/workspace/memory/MEMORY_WRITER_PROMPT.md
-cp prompts/janitor.md /root/.openclaw/workspace/memory/MEMORY_JANITOR_PROMPT.md
+# Clone repo to get files
+cd /tmp && git clone https://github.com/geq1fan/openclaw-memory.git
 
+# Copy files
+cp /tmp/openclaw-memory/scripts/memory-scanner.py /root/.openclaw/workspace/memory/scripts/
+cp /tmp/openclaw-memory/prompts/writer.md /root/.openclaw/workspace/memory/MEMORY_WRITER_PROMPT.md
+cp /tmp/openclaw-memory/prompts/janitor.md /root/.openclaw/workspace/memory/MEMORY_JANITOR_PROMPT.md
+
+# Initialize state
 echo '{"lastRunAtMs":0}' > /root/.openclaw/workspace/memory/.writer-state.json
 touch /root/.openclaw/workspace/memory/.janitor-last-run
 ```
 
-### 5. Add Cron Jobs
+### Step 5: Add Cron Jobs
+
+Use the `cron` tool to add two jobs:
 
 **memory-writer:**
 ```json
@@ -121,28 +119,50 @@ touch /root/.openclaw/workspace/memory/.janitor-last-run
 }
 ```
 
-### 6. Confirm Installation
+### Step 6: Confirm
 
 ```
-openclaw-memory installed successfully!
+✅ openclaw-memory installed successfully!
 
 Configuration:
 - Agent: {agent}
 - Memory Capture: every {N} hours
-- Memory Maintenance: {schedule description}
+- Memory Maintenance: {schedule}
 
 Check status: openclaw cron list
 ```
 
+---
+
+## Comparison with OpenClaw Built-in Memory
+
+| | OpenClaw Built-in | openclaw-memory |
+|---|---|---|
+| Session Capture | Relies on agent/compaction flush | Auto-scans session transcripts |
+| Archive/Organize | No | daily → weekly → archive |
+| Long-term Memory | Manual maintenance | Auto-compresses MEMORY.md |
+| Trigger | Pre-compaction | Scheduled cron |
+
+---
+
+## Architecture
+
+```
+Session Transcripts ──▶ memory-scanner ──▶ daily files
+                                              │
+                                              ▼
+MEMORY.md ◀── memory-janitor ◀── weekly/archive
+```
+
+---
+
 ## Uninstall
 
-```
-Help me uninstall openclaw-memory
-```
+When user says "uninstall openclaw-memory":
+1. Remove cron jobs: `memory-writer`, `memory-janitor`
+2. Optionally remove files from `/root/.openclaw/workspace/memory/`
 
-Agent should:
-1. Remove cron jobs: memory-writer, memory-janitor
-2. Optionally remove files
+---
 
 ## File Structure
 
