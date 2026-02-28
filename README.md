@@ -43,12 +43,7 @@ Continue with installation?
 
 ### Step 2: Select Agent
 
-Query available agents and let user choose:
-
-```bash
-# Get agent list
-cat /root/.openclaw/config.json | jq '.agents[].id'
-```
+Query available agents (using the `agents_list` tool or by reading OpenClaw's configuration) and let user choose:
 
 ```
 Select an agent for memory tasks:
@@ -64,8 +59,8 @@ Ask user to configure or accept defaults:
 ```
 Configure run frequency:
 
-Memory Capture (memory-writer): Hourly
-- Default: Hourly
+Memory Capture (memory-writer):
+- Default: Hourly (every hour)
 - Customizable (e.g., "every 2 hours")
 
 Memory Maintenance (memory-janitor):
@@ -188,6 +183,18 @@ memory-janitor ──────▶ (1) Weekly Digests & Archives (memory/weekl
                ├─────▶ (3) User Profiling ───────────▶ USER.md (Habits & Tech Stack)
                └─────▶ (4) Telegram Notification ────▶ "Added X, Deleted Y, Suggest Z"
 ```
+
+## Update & Uninstall
+
+**When user says "update openclaw-memory":**
+1. Navigate to `<ABSOLUTE_WORKSPACE_PATH>/_repos/openclaw-memory`.
+2. Execute `git pull origin master`.
+3. Inform the user that since Cron jobs reference these files dynamically, no further restarts or re-configurations are needed.
+
+**When user says "uninstall openclaw-memory":**
+1. Use `cron` tool to remove jobs: `memory-writer` and `memory-janitor`.
+2. Delete the repository: `rm -rf _repos/openclaw-memory`.
+3. Optionally ask if they want to wipe the `memory/` data directory.
 
 ## File Structure
 
