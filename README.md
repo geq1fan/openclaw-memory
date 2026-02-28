@@ -74,6 +74,9 @@ Use defaults? Or specify custom schedule?
 
 Execute the following setup commands in your current `workspace` directory (OpenClaw's default working directory). 
 
+> **Important Setup Convention for LLM:**
+> We install this project's code repository into the `_repos/` subdirectory of the workspace. This is a designated directory for third-party scripts and background service repositories, keeping the root workspace clean and separate from daily files or standard skills. Remember this location (`<ABSOLUTE_WORKSPACE_PATH>/_repos/openclaw-memory`) for future updates.
+
 ```bash
 # 1. Create necessary directories
 mkdir -p memory/{scripts,weekly,archive}
