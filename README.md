@@ -9,7 +9,7 @@ When a user sends you this project link, they want to **install** this skill. Pl
 ## What This Does
 
 Automatically captures OpenClaw session memories and maintains long-term memory:
-- **memory-writer**: Scans session transcripts every 2 hours → writes to daily files
+- **memory-writer**: Scans session transcripts Hourly → writes to daily files
 - **memory-janitor**: Compresses/archives old logs → maintains MEMORY.md + **validates knowledge**
 
 ### Knowledge Validation (New)
@@ -64,9 +64,9 @@ Ask user to configure or accept defaults:
 ```
 Configure run frequency:
 
-Memory Capture (memory-writer):
-- Default: every 2 hours
-- Customizable (e.g., "every 4 hours")
+Memory Capture (memory-writer): Hourly
+- Default: Hourly
+- Customizable (e.g., "every 2 hours")
 
 Memory Maintenance (memory-janitor):
 - Default: 4 times per day (3:10, 9:10, 15:10, 21:10)
@@ -81,21 +81,16 @@ Use defaults? Or specify custom schedule?
 mkdir -p /root/.openclaw/workspace/memory/{scripts,weekly,archive}
 
 # Clone repo to get files
-cd /tmp && git clone https://github.com/geq1fan/openclaw-memory.git
-
-# Copy files
-cp /tmp/openclaw-memory/scripts/memory-scanner.py /root/.openclaw/workspace/memory/scripts/
-cp /tmp/openclaw-memory/prompts/writer.md /root/.openclaw/workspace/memory/MEMORY_WRITER_PROMPT.md
-cp /tmp/openclaw-memory/prompts/janitor.md /root/.openclaw/workspace/memory/MEMORY_JANITOR_PROMPT.md
+cd /root/.openclaw/workspace/_repos && git clone https://github.com/geq1fan/openclaw-memory.git
 
 # Initialize state
-echo '{"lastRunAtMs":0}' > /root/.openclaw/workspace/memory/.writer-state.json
+echo '{"lastRunAtMs":0, "processedSessionIds":[]}' > /root/.openclaw/workspace/memory/.writer-state.json
 touch /root/.openclaw/workspace/memory/.janitor-last-run
 ```
 
 ### Step 5: Add Cron Jobs
 
-Use the `cron` tool to add two jobs:
+Use the `cron` tool to add two jobs (Notice: `cwd` is strictly required):
 
 **memory-writer:**
 ```json
@@ -103,13 +98,14 @@ Use the `cron` tool to add two jobs:
   "name": "memory-writer",
   "agentId": "<user-selected agent>",
   "enabled": true,
+  "cwd": "/root/.openclaw/workspace",
   "sessionTarget": "isolated",
   "wakeMode": "now",
-  "schedule": { "kind": "every", "everyMs": 7200000 },
+  "schedule": { "kind": "cron", "expr": "0 * * * *", "tz": "Asia/Shanghai" },
   "payload": {
     "kind": "agentTurn",
     "timeoutSeconds": 120,
-    "message": "You are the memory writer. Read memory/MEMORY_WRITER_PROMPT.md and execute. Reply ANNOUNCE_SKIP when done."
+    "message": "You are the memory writer. Read /root/.openclaw/workspace/_repos/openclaw-memory/prompts/writer.md and execute. Reply ANNOUNCE_SKIP when done."
   },
   "delivery": { "mode": "none" }
 }
@@ -127,7 +123,7 @@ Use the `cron` tool to add two jobs:
   "schedule": { "kind": "cron", "expr": "10 3,9,15,21 * * *", "tz": "Asia/Shanghai" },
   "payload": {
     "kind": "agentTurn",
-    "message": "Memory maintenance task. 1. Change detection: find /root/.openclaw/workspace/memory/ -maxdepth 1 -name '*.md' -newer /root/.openclaw/workspace/memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read memory/MEMORY_JANITOR_PROMPT.md and execute all phases (including knowledge validation). 3. touch /root/.openclaw/workspace/memory/.janitor-last-run. 4. Send result summary via message tool."
+    "message": "Memory maintenance task. 1. Change detection: find /root/.openclaw/workspace/memory/ -maxdepth 1 -name '*.md' -newer /root/.openclaw/workspace/memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read /root/.openclaw/workspace/_repos/openclaw-memory/prompts/janitor.md and execute all phases (including knowledge validation). 3. touch /root/.openclaw/workspace/memory/.janitor-last-run. 4. Send result summary via message tool."
   },
   "delivery": { "mode": "announce" }
 }
@@ -140,7 +136,7 @@ Use the `cron` tool to add two jobs:
 
 Configuration:
 - Agent: {agent}
-- Memory Capture: every {N} hours
+- Memory Capture (memory-writer): Hourly
 - Memory Maintenance: {schedule}
 
 Check status: openclaw cron list
@@ -148,45 +144,51 @@ Check status: openclaw cron list
 
 ---
 
+## Core Features (V1 Mature)
+
+- **Unobtrusive Capture**: Automatically scans recent transcripts to extract decisions, preferences, and context without interrupting conversations.
+- **State Tracking (Anti-Overwrite)**: Prevents losing project history. State changes are appended chronologically (e.g., `Project: [02-28] WIP -> [03-01] Done`) instead of blind overwriting.
+- **Transparent Maintenance (No Black Box)**: Sends a detailed summary to Telegram on every run, explicitly listing what it added and what it deleted, allowing for immediate human correction.
+- **Auto-Profiling**: Detects changes in user habits, stack preferences, or identities and auto-updates `USER.md`.
+- **System Optimization Insights**: Analyzes recurring pain points from daily logs and suggests optimizations for `AGENTS.md` and `TOOLS.md` directly in the Telegram notification.
+- **Self-Healing Knowledge**: Validates `MEMORY.md` to flag conflicting or outdated configurations.
+
+---
+
 ## Comparison with OpenClaw Built-in Memory
 
-| | OpenClaw Built-in | openclaw-memory |
+| Feature | OpenClaw Built-in | openclaw-memory |
 |---|---|---|
-| Session Capture | Relies on agent/compaction flush | Auto-scans session transcripts |
-| Archive/Organize | No | daily → weekly → archive |
-| Long-term Memory | Manual maintenance | Auto-compresses MEMORY.md |
-| Trigger | Pre-compaction | Scheduled cron |
+| **Capture** | Relies on pre-compaction flush | Hourly auto-scan of session transcripts |
+| **History Retention** | Flat overwrite | Chronological state tracking & daily/weekly/archive |
+| **Visibility** | Silent / Background | Explicit Telegram diffs (Added/Deleted) |
+| **User Profiling** | Manual | Auto-extracts to `USER.md` |
+| **Optimization Loop** | None | Suggests improvements based on recurring pain points |
 
 ---
 
-## Architecture
+## Architecture Flow
 
+```text
+[Main Session] ──────▶ Session Transcripts
+                             │
+(Every 1 hour)               ▼
+memory-writer  ──────▶ memory/YYYY-MM-DD.md (Daily Event Log)
+                             │
+(4 times/day)                ▼
+memory-janitor ──────▶ (1) Weekly Digests & Archives (memory/weekly/ & memory/archive/)
+               ├─────▶ (2) Core Memory Extraction ───▶ MEMORY.md (Long-term, max 10KB)
+               ├─────▶ (3) User Profiling ───────────▶ USER.md (Habits & Tech Stack)
+               └─────▶ (4) Telegram Notification ────▶ "Added X, Deleted Y, Suggest Z"
 ```
-Session Transcripts ──▶ memory-scanner ──▶ daily files
-                                              │
-                                              ▼
-MEMORY.md ◀── memory-janitor ◀── weekly/archive
-```
-
----
-
-## Uninstall
-
-When user says "uninstall openclaw-memory":
-1. Remove cron jobs: `memory-writer`, `memory-janitor`
-2. Optionally remove files from `/root/.openclaw/workspace/memory/`
-
----
 
 ## File Structure
 
 ```
 /root/.openclaw/workspace/memory/
 ├── scripts/memory-scanner.py
-├── weekly/
-├── archive/
-├── MEMORY_WRITER_PROMPT.md
-├── MEMORY_JANITOR_PROMPT.md
+├── weekly/                 # Weekly summarized files
+├── archive/                # Raw daily transcripts
 ├── .writer-state.json
 └── .janitor-last-run
 ```
