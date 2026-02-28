@@ -121,6 +121,7 @@ Use the `cron` tool to add two jobs:
   "name": "memory-janitor",
   "agentId": "<user-selected agent>",
   "enabled": true,
+  "cwd": "/root/.openclaw/workspace",
   "sessionTarget": "isolated",
   "wakeMode": "now",
   "schedule": { "kind": "cron", "expr": "10 3,9,15,21 * * *", "tz": "Asia/Shanghai" },
