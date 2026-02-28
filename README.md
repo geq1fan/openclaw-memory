@@ -77,20 +77,27 @@ Use defaults? Or specify custom schedule?
 
 ### Step 4: Install Files
 
+Execute the following setup commands in your current `workspace` directory (OpenClaw's default working directory). 
+
 ```bash
-mkdir -p /root/.openclaw/workspace/memory/{scripts,weekly,archive}
+# 1. Create necessary directories
+mkdir -p memory/{scripts,weekly,archive}
+mkdir -p _repos
 
-# Clone repo to get files
-cd /root/.openclaw/workspace/_repos && git clone https://github.com/geq1fan/openclaw-memory.git
+# 2. Clone repo to get files
+cd _repos && git clone https://github.com/geq1fan/openclaw-memory.git
 
-# Initialize state
-echo '{"lastRunAtMs":0, "processedSessionIds":[]}' > /root/.openclaw/workspace/memory/.writer-state.json
-touch /root/.openclaw/workspace/memory/.janitor-last-run
+# 3. Initialize state files
+echo '{"lastRunAtMs":0, "processedSessionIds":[]}' > ../memory/.writer-state.json
+touch ../memory/.janitor-last-run
 ```
 
 ### Step 5: Add Cron Jobs
 
-Use the `cron` tool to add two jobs (Notice: `cwd` is strictly required):
+Use the `cron` tool to add two jobs. 
+**Crucial Path Requirements**:
+- `cwd`: Must be your **absolute workspace path** (e.g., `/root/.openclaw/workspace` or `/Users/name/.openclaw/workspace`).
+- `message`: The path to `writer.md` and `janitor.md` must be their **absolute paths** pointing to the cloned `_repos/openclaw-memory/prompts/` directory.
 
 **memory-writer:**
 ```json
@@ -98,14 +105,14 @@ Use the `cron` tool to add two jobs (Notice: `cwd` is strictly required):
   "name": "memory-writer",
   "agentId": "<user-selected agent>",
   "enabled": true,
-  "cwd": "/root/.openclaw/workspace",
+  "cwd": "<ABSOLUTE_WORKSPACE_PATH>",
   "sessionTarget": "isolated",
   "wakeMode": "now",
   "schedule": { "kind": "cron", "expr": "0 * * * *", "tz": "Asia/Shanghai" },
   "payload": {
     "kind": "agentTurn",
     "timeoutSeconds": 120,
-    "message": "You are the memory writer. Read /root/.openclaw/workspace/_repos/openclaw-memory/prompts/writer.md and execute. Reply ANNOUNCE_SKIP when done."
+    "message": "You are the memory writer. Read <ABSOLUTE_WORKSPACE_PATH>/_repos/openclaw-memory/prompts/writer.md and execute. Reply ANNOUNCE_SKIP when done."
   },
   "delivery": { "mode": "none" }
 }
@@ -117,13 +124,13 @@ Use the `cron` tool to add two jobs (Notice: `cwd` is strictly required):
   "name": "memory-janitor",
   "agentId": "<user-selected agent>",
   "enabled": true,
-  "cwd": "/root/.openclaw/workspace",
+  "cwd": "<ABSOLUTE_WORKSPACE_PATH>",
   "sessionTarget": "isolated",
   "wakeMode": "now",
   "schedule": { "kind": "cron", "expr": "10 3,9,15,21 * * *", "tz": "Asia/Shanghai" },
   "payload": {
     "kind": "agentTurn",
-    "message": "Memory maintenance task. 1. Change detection: find /root/.openclaw/workspace/memory/ -maxdepth 1 -name '*.md' -newer /root/.openclaw/workspace/memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read /root/.openclaw/workspace/_repos/openclaw-memory/prompts/janitor.md and execute all phases (including knowledge validation). 3. touch /root/.openclaw/workspace/memory/.janitor-last-run. 4. Send result summary via message tool."
+    "message": "Memory maintenance task. 1. Change detection: find memory/ -maxdepth 1 -name '*.md' -newer memory/.janitor-last-run. Exit if no changes. 2. If changes exist, read <ABSOLUTE_WORKSPACE_PATH>/_repos/openclaw-memory/prompts/janitor.md and execute all phases (including knowledge validation). 3. touch memory/.janitor-last-run. 4. Send result summary via message tool."
   },
   "delivery": { "mode": "announce" }
 }
