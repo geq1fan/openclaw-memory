@@ -316,7 +316,7 @@
 ```json
 {
   "action": "send",
-  "message": "🧠 memory-janitor 完成\n\n- 归档: X 个文件\n- MEMORY.md: X 条更新\n\n📌 **新增记录**:\n- [列出具体新增的1-3条最重要的记录摘要]\n\n🗑️ **删除/降级记录**:\n- [列出具体删除/降级的1-3条记录摘要]\n\n- 知识验证: X 个问题\n- 系统优化: X 条建议\n\n详情: memory/weekly/janitor-report-YYYY-MM-DD.md"
+  "message": "🧠 memory-janitor 完成\n\n- 归档: X 个文件\n- MEMORY.md: X 条更新\n\n📌 **新增记录**:\n- [列出具体新增的1-3条最重要的记录摘要]\n\n🗑️ **删除/降级记录**:\n- [列出具体删除/降级的1-3条记录摘要]\n\n💡 **系统优化建议**:\n- [列出具体的优化建议（如建议新增的Skill、自动化的流程、AGENTS.md规则等），如果没有写“无”]\n\n- 知识验证: X 个问题\n\n详情: memory/weekly/janitor-report-YYYY-MM-DD.md"
 }
 ```
 
